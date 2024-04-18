@@ -15,8 +15,8 @@ reprocess: true
 scope:
   type: Ip
 labels:
-  confidence: 3
   spoofable: 0
+  confidence: 3
   classification:
    - attack.T1110
   behavior: "cloud:bruteforce"
