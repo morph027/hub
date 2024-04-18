@@ -1,0 +1,63 @@
+name: populate hapi
+on:
+  push:
+    paths:
+      - '**.yaml'
+  create:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_POPULATE_HAPI_RO_ROLE }}
+        role-session-name: github-action-hub-populate-hapi
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.event.created.head.repo.full_name }}
+        ref: ${{ github.event.created.head.ref }}
+        path: hub
+      if: github.event.created
+
+    - name: Sync when new branch
+      if: github.event.created
+      run: |
+        echo "Branch: ${GITHUB_REF#refs/heads/}"
+        cd hub
+        for file in  $(find .  -name "*"ml ! -path './.tests/*' ! -path './.github/*') ;
+        do
+            curl -XPUT "https://hub.api.dev.crowdsec.net/v1/admin/crowdsecurity/${GITHUB_REF#refs/heads/}"" --aws-sigv4 "aws:amz:eu-west--1:execute-api" --user "$AWS_ACCESS_KEY_ID":"$AWS_SECRET_ACCESS_KEY" -H "x-amz-security-token: $AWS_SESSION_TOKEN" --data @$file
+        done
+
+    - name: Fetch all commit details
+      if: ! github.event.created
+      id: fetch-commits
+      run: |
+        TOKEN=$GITHUB_TOKEN
+        URL=$(jq -r '.repository.commits_url' $GITHUB_EVENT_PATH | sed 's/{\/sha}//')
+        COMMITS=""
+        PAGE=1
+        while true; do
+          PAGE_COMMITS=$(curl -sSL -H "Authorization: token $TOKEN" "$URL?page=$PAGE&per_page=100" | jq -r '.[].sha')
+          if [ -z "$PAGE_COMMITS" ]; then
+            break
+          fi
+          COMMITS="$COMMITS $PAGE_COMMITS"
+          PAGE=$((PAGE + 1))
+        done
+        echo "::set-output name=commits::$COMMITS"
+
+    - name: Print modified files
+      if: ! github.event.created
+      run: |
+        for sha in ${{ steps.fetch-commits.outputs.commits }}; do
+          FILES=$(curl -sSL -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${{ github.repository }}/commits/$sha | jq -r '.files[].filename')
+          echo "Modified files in commit $sha:"
+          echo "$FILES"
+          # Perform your actions on each modified file here
+        done
