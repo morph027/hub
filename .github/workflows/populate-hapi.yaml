@@ -53,7 +53,7 @@ jobs:
         echo "::set-output name=commits::$COMMITS"
 
     - name: Print modified files
-      if: ! github.event.created
+      if: ${{ ! github.event.created }}
       run: |
         for sha in ${{ steps.fetch-commits.outputs.commits }}; do
           FILES=$(curl -sSL -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${{ github.repository }}/commits/$sha | jq -r '.files[].filename')
