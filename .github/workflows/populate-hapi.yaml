@@ -43,6 +43,7 @@ jobs:
         URL=$(jq -r '.repository.commits_url' $GITHUB_EVENT_PATH | sed 's/{\/sha}//')
         COMMITS=""
         PAGE=1
+        curl -sSL -H "Authorization: token $TOKEN" "$URL?page=$PAGE&per_page=100"
         while true; do
           PAGE_COMMITS=$(curl -sSL -H "Authorization: token $TOKEN" "$URL?page=$PAGE&per_page=100" | jq -r '.[].sha')
           if [ -z "$PAGE_COMMITS" ]; then
