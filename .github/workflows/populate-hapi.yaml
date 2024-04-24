@@ -24,10 +24,9 @@ jobs:
         repository: ${{ github.event.created.head.repo.full_name }}
         ref: ${{ github.event.created.head.ref }}
         path: hub
-      if: github.event.created
 
     - name: Sync when new branch
-      if: ${{ ! github.event.created }}
+      if: github.event.created
       run: |
         echo "Branch: ${GITHUB_REF#refs/heads/}"
         cd hub
