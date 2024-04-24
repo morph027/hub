@@ -52,6 +52,7 @@ jobs:
         done
         echo "::set-output name=commits::$COMMITS"
 
+
     - name: Print modified files
       if: ${{ ! github.event.created }}
       run: |
