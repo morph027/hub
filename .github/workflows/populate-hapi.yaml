@@ -55,7 +55,7 @@ jobs:
           COMMITS="$COMMITS $PAGE_COMMITS"
           PAGE=$((PAGE + 1))
         done
-        echo $COMMITS
+        #echo $COMMITS
 
     - name: Print modified files
       if: ${{ ! github.event.created }}
