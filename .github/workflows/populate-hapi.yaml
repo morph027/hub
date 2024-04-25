@@ -42,7 +42,7 @@ jobs:
       env:
           GITHUB_TOKEN: ${{ github.token }}
       run: |
-        echo $GITHUB_EVENT_PATH
+        echo ${{ github.event }}
         URL=$(jq -r '.repository.commits_url' $GITHUB_EVENT_PATH | sed 's/{\/sha}//')
         COMMITS=""
         PAGE=1
