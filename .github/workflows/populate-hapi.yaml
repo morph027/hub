@@ -54,13 +54,12 @@ jobs:
           COMMITS="$COMMITS $PAGE_COMMITS"
           PAGE=$((PAGE + 1))
         done
-        echo "::set-output name=commits::$COMMITS"
-
 
     - name: Print modified files
       if: ${{ ! github.event.created }}
       run: |
-        for sha in ${{ steps.fetch-commits.outputs.commits }}; do
+        echo $COMMITS
+        for sha in $COMMITS; do
           FILES=$(curl -sSL -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${{ github.repository }}/commits/$sha | jq -r '.files[].filename')
           echo "Modified files in commit $sha:"
           echo "$FILES"
